@@ -4,7 +4,6 @@ function arch_add() {
 ### add the i386 arch software sources to meet the requirments
     dpkg --add-architecture i386
     apt-get update
-    exit 0
 }
 
 function dependency_satify() {
@@ -39,7 +38,6 @@ function oac_prepare() {
     if [-d ./OpenArkCompiler]; then
         export OacRoot=./OpenArkCompiler
     fi
-    exit 0
 }
 
 function dir_create() {
@@ -47,7 +45,7 @@ function dir_create() {
     mkdir $OacRoot/tools/gn
     if [ -d $OacRoot/tools/ninja_1.9.0 ]; then
         if [ -d $OacRoot/tools/gn]; then
-            exit 0
+            return 0
         fi
     fi
 }
