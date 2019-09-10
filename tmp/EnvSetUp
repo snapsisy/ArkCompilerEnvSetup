@@ -1,0 +1,78 @@
+#!/bin/bash
+
+function arch_add() {
+### add the i386 arch software sources to meet the requirments
+    dpkg --add-architecture i386
+    apt-get update
+    exit 0
+}
+
+function dependency_satify() {
+## use step_count to ensure all the steps are executed
+## if not, exit the excution and return the error code 1
+
+### initialize step_count
+    set step_count=1
+### install dependencies
+    apt-get -y install openjdk-8-jdk git-core gnupg flex bison gperf build-essential zip curl zlib1g-dev libc6-dev-i386 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z-dev ccache libgl1-mesa-dev libxml2-utils xsltproc unzip lib32z1-dev qemu g++-multilib gcc-multilib python3-paramiko python-paramiko python-jenkins python-requests python-xlwt libglib2.0-dev libpixman-1-dev linux-libc-dev:i386
+    $step_count=2
+### install mix-compiling toolchain
+    apt-get -y install gcc-5-aarch64-linux-gnu g++-5-aarch64-linux-gnu
+    $step_count=3
+### install self-defined download tools
+    apt-get -y install curl axel
+    $step_count=4
+### check step_count
+    if [ $step_count != 4 ]; then
+        echo "dependency installation failed, maybe you need to check your network connection"
+        exit 1
+    fi
+}
+
+function oac_prepare() {
+## Use git to clone the whole project
+    if [ `pwd` != '/' ]; then
+        cd /
+    fi
+    git clone https://code.opensource.huaweicloud.com/HarmonyOS/OpenArkCompiler.git
+## Test if the directory exists and set env
+    if [-d ./OpenArkCompiler]; then
+        export OacRoot=./OpenArkCompiler
+    fi
+    exit 0
+}
+
+function dir_create() {
+    mkdir $OacRoot/tools/ninja_1.9.0
+    mkdir $OacRoot/tools/gn
+    if [ -d $OacRoot/tools/ninja_1.9.0 ]; then
+        if [ -d $OacRoot/tools/gn]; then
+            exit 0
+        fi
+    fi
+}
+
+function tool_prepare() {
+## download ninja to tools directory
+    cd $OacRoot/tools/ninja_1.9.0/ && curl -LO https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-linux.zip && unzip ninja-linux.zip && rm ninja-linux.zip
+    echo 'ninja copied'
+## downlaod gn to tools directory
+    cd $OacRoot/tools/gn/ && curl -L 'https://archive.softwareheritage.org/browse/content/sha1_git:2dc0d5b26caef44f467de8120b26f8aad8b878be/raw/?filename=gn' -o gn
+    echo 'gn copied'
+## download llvm-clang
+    cd $OacRoot/tools && axel -n 20 'http://releases.llvm.org/8.0.0/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz' && tar -xvf clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04 && cp -rf clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04 clang_llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04
+}
+
+function env_ready() {
+    source build/envsetup.sh
+}
+
+
+arch_add
+dependency_satify
+oac_prepare
+dir_create
+tool_prepare
+env_ready
+
+make -j8
