@@ -1,6 +1,4 @@
 #!/bin/bash
-set +x
-set +e
 function arch_add() {
 ### add the i386 arch software sources to meet the requirments
     dpkg --add-architecture i386
@@ -16,7 +14,8 @@ function dependency_satify() {
 ### install dependencies
     apt-get -y install openjdk-8-jdk git-core gnupg flex bison gperf build-essential zip curl zlib1g-dev libc6-dev-i386 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z-dev ccache libgl1-mesa-dev libxml2-utils xsltproc unzip lib32z1-dev qemu g++-multilib gcc-multilib python3-paramiko python-paramiko python-jenkins python-requests python-xlwt libglib2.0-dev libpixman-1-dev linux-libc-dev:i386
     step_count=2
-### install mix-compiling toolchain
+### install mix-compiling toolchain, but don't know why
+### there even is a confliction in the packages dependence
     apt-get -y install gcc-5-aarch64-linux-gnu g++-5-aarch64-linux-gnu
     step_count=3
 ### install self-defined download tools
